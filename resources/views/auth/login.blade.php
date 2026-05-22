@@ -66,8 +66,8 @@
             </div>
 
             <div class="flex items-center justify-between">
-                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                    <input type="checkbox" name="remember" class="rounded border-gray-300 text-blue-600">
+                <label class="d-none items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <input type="checkbox" checked name="remember" class="rounded border-gray-300 text-blue-600">
                     Lembrar-me
                 </label>
                 <a href="{{ route('password.request') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
