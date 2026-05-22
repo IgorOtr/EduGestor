@@ -1,58 +1,189 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EduGestor
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de gestão de recursos escolares municipais, desenvolvido em Laravel 13.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Requisitos
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Antes de começar, certifique-se de ter instalado em sua máquina:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Ferramenta | Versão mínima |
+|-----------|---------------|
+| PHP | 8.3+ |
+| Composer | 2.x |
+| Node.js | 18+ |
+| MySQL | 8.0+ |
+| Git | qualquer |
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Instalação
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clone o repositório
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/IgorOtr/EduGestor.git
+cd EduGestor
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Instale as dependências PHP
 
-## Contributing
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Instale as dependências Node
 
-## Code of Conduct
+```bash
+npm install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Configure o ambiente
 
-## Security Vulnerabilities
+Copie o arquivo de exemplo e ajuste as variáveis:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cp .env.example .env
+```
 
-## License
+Abra o `.env` e preencha as configurações do banco de dados:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+APP_NAME=EduGestor
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=edugestor
+DB_USERNAME=seu_usuario
+DB_PASSWORD=sua_senha
+```
+
+### 5. Gere a chave da aplicação
+
+```bash
+php artisan key:generate
+```
+
+### 6. Crie o banco de dados
+
+No seu cliente MySQL (MySQL Workbench, TablePlus, linha de comando, etc.), crie o banco:
+
+```sql
+CREATE DATABASE edugestor CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 7. Execute as migrations e seeders
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Isso criará todas as tabelas e populará com dados iniciais (usuários, escolas, categorias e produtos de exemplo).
+
+### 8. Crie o link simbólico de storage
+
+```bash
+php artisan storage:link
+```
+
+### 9. Compile os assets
+
+```bash
+npm run build
+```
+
+---
+
+## ▶️ Iniciando o servidor
+
+```bash
+php artisan serve
+```
+
+Acesse em: [http://localhost:8000](http://localhost:8000)
+
+---
+
+## 👤 Usuários de acesso (gerados pelo seeder)
+
+| Papel | E-mail | Senha |
+|-------|--------|-------|
+| Root | root@edugestor.com | password |
+| Secretário | secretario@edugestor.com | password |
+| Diretor (Escola A) | ana.lima@edugestor.com | password |
+| Diretor (Escola B) | carlos.souza@edugestor.com | password |
+| Diretor (Escola C) | maria.costa@edugestor.com | password |
+
+> **Atenção:** Altere as senhas após o primeiro acesso em produção.
+
+---
+
+## 🏗️ Estrutura de papéis (Roles)
+
+| Role | Permissões |
+|------|-----------|
+| **Root** | Acesso total ao sistema — gerencia usuários, escolas, categorias, produtos, pedidos e solicitações |
+| **Secretário** | Gerencia escolas, produtos, categorias e aprova/recusa pedidos e solicitações de alteração |
+| **Diretor** | Visualiza apenas sua escola, cria pedidos e solicita alterações de dados da escola |
+
+---
+
+## 🛠️ Tecnologias utilizadas
+
+- **Backend:** Laravel 13, PHP 8.4
+- **Frontend:** Blade, Tailwind CSS 4 (via Vite), Alpine.js
+- **Banco de dados:** MySQL 8
+- **Padrões:** Repository Pattern, Service Layer, DTO, Policies, FormRequests
+
+---
+
+## ⚙️ Comandos úteis durante o desenvolvimento
+
+```bash
+# Recriar banco com dados frescos
+php artisan migrate:fresh --seed
+
+# Limpar caches
+php artisan optimize:clear
+
+# Compilar assets em modo watch (desenvolvimento)
+npm run dev
+
+# Gerar build de produção
+npm run build
+
+# Rodar testes
+php artisan test
+```
+
+---
+
+## 📁 Organização do projeto
+
+```
+app/
+├── DTOs/               # Data Transfer Objects
+├── Enums/              # Enumerações (roles, status)
+├── Http/
+│   ├── Controllers/    # Controllers RESTful
+│   ├── Middleware/     # Middlewares de autenticação e role
+│   └── Requests/       # FormRequests com validação
+├── Models/             # Eloquent Models
+├── Policies/           # Autorização por recurso
+├── Repositories/       # Camada de acesso a dados
+├── Services/           # Lógica de negócio
+└── Traits/             # HasAudit (rastreio de criação)
+resources/
+├── css/app.css         # Tailwind CSS 4
+├── js/app.js           # Entry point JS
+└── views/              # Blade templates
+```
+
+---
+
+## 📄 Licença
+
+Este projeto é de uso interno da prefeitura municipal.
