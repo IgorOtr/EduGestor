@@ -66,7 +66,7 @@
             </div>
 
             <div class="flex items-center justify-between">
-                <label class="d-none items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                <label style="display: none;" class="d-none items-center gap-2 text-sm text-gray-600 cursor-pointer">
                     <input type="checkbox" checked name="remember" class="rounded border-gray-300 text-blue-600">
                     Lembrar-me
                 </label>
