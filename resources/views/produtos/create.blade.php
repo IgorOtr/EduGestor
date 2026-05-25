@@ -46,7 +46,7 @@
                 <input type="number" name="qnt_max" value="{{ old('qnt_max', 100) }}" min="1" required
                        class="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl text-sm dark:bg-gray-700 dark:text-white"/>
             </div>
-            @if(auth()->user()->isSecretario())
+            @if(auth()->user()->isSecretario() || auth()->user()->isRoot())
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Custo Unitário (R$)</label>
                 <input type="number" name="unt_cust" value="{{ old('unt_cust') }}" min="0" step="0.01"

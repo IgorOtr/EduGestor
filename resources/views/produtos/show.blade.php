@@ -39,7 +39,7 @@
                     <div class="flex gap-6 mt-4 text-sm">
                         <div><span class="text-gray-500">Mín:</span> <strong>{{ $produto->qnt_min }}</strong></div>
                         <div><span class="text-gray-500">Máx:</span> <strong>{{ $produto->qnt_max }}</strong></div>
-                        @if(auth()->user()->isSecretario() && $produto->unt_cust !== null)
+                        @if((auth()->user()->isSecretario() || auth()->user()->isRoot()) && $produto->unt_cust !== null)
                         <div><span class="text-gray-500">Custo unit.:</span> <strong>R$ {{ number_format($produto->unt_cust, 2, ',', '.') }}</strong></div>
                         @endif
                     </div>

@@ -27,7 +27,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Produto</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Qtd. Solicitada</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Qtd. Aprovada</th>
-                            @if(auth()->user()->isSecretario())
+                            @if(auth()->user()->isSecretario() || auth()->user()->isRoot())
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Custo Unit.</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Subtotal</th>
                             @endif
@@ -52,7 +52,7 @@
                                     </span>
                                 @endif
                             </td>
-                            @if(auth()->user()->isSecretario())
+                            @if(auth()->user()->isSecretario() || auth()->user()->isRoot())
                             <td class="px-6 py-4 text-center text-gray-600 dark:text-gray-400 text-sm">
                                 {{ $item->produto?->unt_cust !== null ? 'R$ ' . number_format($item->produto->unt_cust, 2, ',', '.') : '–' }}
                             </td>
@@ -68,7 +68,7 @@
                         </tr>
                         @endforeach
                     </tbody>
-                    @if(auth()->user()->isSecretario() && $pedido->total_cust !== null)
+                    @if((auth()->user()->isSecretario() || auth()->user()->isRoot()) && $pedido->total_cust !== null)
                     <tfoot>
                         <tr class="bg-gray-50 dark:bg-gray-700/50">
                             <td colspan="4" class="px-6 py-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
