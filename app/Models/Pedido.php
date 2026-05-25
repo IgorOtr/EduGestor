@@ -23,6 +23,7 @@ class Pedido extends Model
         'status',
         'obs_secretario',
         'aprovado_em',
+        'total_cust',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class Pedido extends Model
         return [
             'status'      => PedidoStatusEnum::class,
             'aprovado_em' => 'datetime',
+            'total_cust'  => 'decimal:2',
         ];
     }
 

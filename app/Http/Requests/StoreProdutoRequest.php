@@ -20,6 +20,7 @@ class StoreProdutoRequest extends FormRequest
             'imagem'       => ['nullable', 'image', 'max:2048'],
             'qnt_min'      => ['required', 'integer', 'min:1'],
             'qnt_max'      => ['required', 'integer', 'min:1', 'gte:qnt_min'],
+            'unt_cust'     => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

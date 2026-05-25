@@ -57,8 +57,8 @@ class ProdutoService
         return $this->produtoRepository->findOrFail($id, ['categoria']);
     }
 
-    public function todos(): \Illuminate\Database\Eloquent\Collection
+    public function todos(?string $busca = null, ?string $categoriaId = null)
     {
-        return $this->produtoRepository->allAtivos();
+        return $this->produtoRepository->allAtivos($busca, $categoriaId);
     }
 }

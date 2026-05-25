@@ -27,6 +27,10 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Produto</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Qtd. Solicitada</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Qtd. Aprovada</th>
+                            @if(auth()->user()->isSecretario())
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Custo Unit.</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Subtotal</th>
+                            @endif
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
                         </tr>
                     </thead>
@@ -48,10 +52,35 @@
                                     </span>
                                 @endif
                             </td>
+                            @if(auth()->user()->isSecretario())
+                            <td class="px-6 py-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                                {{ $item->produto?->unt_cust !== null ? 'R$ ' . number_format($item->produto->unt_cust, 2, ',', '.') : '–' }}
+                            </td>
+                            <td class="px-6 py-4 text-center text-gray-700 dark:text-gray-300 text-sm font-medium">
+                                @php
+                                    $qnt  = $item->qnt_aprov ?? $item->qnt_solicit;
+                                    $cust = $item->produto?->unt_cust;
+                                @endphp
+                                {{ $cust !== null ? 'R$ ' . number_format($qnt * $cust, 2, ',', '.') : '–' }}
+                            </td>
+                            @endif
                             <td class="px-6 py-4 text-center"><x-status-badge :status="$item->status"/></td>
                         </tr>
                         @endforeach
                     </tbody>
+                    @if(auth()->user()->isSecretario() && $pedido->total_cust !== null)
+                    <tfoot>
+                        <tr class="bg-gray-50 dark:bg-gray-700/50">
+                            <td colspan="4" class="px-6 py-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                Custo Total Estimado:
+                            </td>
+                            <td class="px-6 py-3 text-center text-sm font-bold text-green-700 dark:text-green-400">
+                                R$ {{ number_format($pedido->total_cust, 2, ',', '.') }}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                    @endif
                 </table>
             </div>
 

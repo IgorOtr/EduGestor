@@ -23,13 +23,15 @@ class Produto extends Model
         'imagem',
         'qnt_min',
         'qnt_max',
+        'unt_cust',
     ];
 
     protected function casts(): array
     {
         return [
-            'qnt_min' => 'integer',
-            'qnt_max' => 'integer',
+            'qnt_min'  => 'integer',
+            'qnt_max'  => 'integer',
+            'unt_cust' => 'decimal:2',
         ];
     }
 

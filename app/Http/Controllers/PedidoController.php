@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DTOs\PedidoDTO;
 use App\Http\Requests\AprovarPedidoRequest;
 use App\Http\Requests\StorePedidoRequest;
+use App\Models\Categoria;
 use App\Models\Pedido;
 use App\Services\PedidoService;
 use App\Services\ProdutoService;
@@ -27,9 +28,12 @@ class PedidoController extends Controller
     public function create(): View
     {
         $this->authorize('create', Pedido::class);
-        $produtos = $this->produtoService->todos();
-        $escola   = auth()->user()->escola;
-        return view('pedidos.create', compact('produtos', 'escola'));
+        $busca      = request('busca');
+        $categoriaId = request('categoria_id');
+        $produtos   = $this->produtoService->todos($busca, $categoriaId);
+        $categorias = Categoria::orderBy('name')->get();
+        $escola     = auth()->user()->escola;
+        return view('pedidos.create', compact('produtos', 'escola', 'categorias', 'busca', 'categoriaId'));
     }
 
     public function store(StorePedidoRequest $request): RedirectResponse

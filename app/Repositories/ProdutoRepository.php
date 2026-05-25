@@ -17,8 +17,13 @@ class ProdutoRepository extends BaseRepository
         return Produto::with($relations ?: ['categoria'])->latest()->paginate($perPage);
     }
 
-    public function allAtivos(): \Illuminate\Database\Eloquent\Collection
+    public function allAtivos(?string $busca = null, ?string $categoriaId = null): LengthAwarePaginator
     {
-        return Produto::with('categoria')->get();
+        return Produto::with('categoria')
+            ->when($busca, fn($q) => $q->where('nome', 'like', "%{$busca}%"))
+            ->when($categoriaId, fn($q) => $q->where('categoria_id', $categoriaId))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
     }
 }

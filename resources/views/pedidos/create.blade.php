@@ -12,16 +12,32 @@
     <!-- Catálogo -->
     <div class="lg:col-span-2">
         <x-card title="Catálogo de Produtos" :padding="false">
-            <!-- Search -->
-            <div class="px-6 pt-4 pb-2">
-                <input type="text" x-model="busca" placeholder="Buscar produto..."
-                       class="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:bg-gray-700 dark:text-white"/>
-            </div>
+            <!-- Filtros (server-side) -->
+            <form method="GET" action="{{ route('pedidos.create') }}" class="px-6 pt-4 pb-3 flex gap-3">
+                <input type="text" name="busca" value="{{ $busca }}" placeholder="Buscar por nome..."
+                       class="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:bg-gray-700 dark:text-white"/>
+                <select name="categoria_id"
+                        class="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none dark:bg-gray-700 dark:text-white">
+                    <option value="">Todas as categorias</option>
+                    @foreach($categorias as $cat)
+                        <option value="{{ $cat->id }}" @selected($categoriaId == $cat->id)>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition">
+                    Filtrar
+                </button>
+                @if($busca || $categoriaId)
+                <a href="{{ route('pedidos.create') }}"
+                   class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-xl transition">
+                    Limpar
+                </a>
+                @endif
+            </form>
 
-            <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-[60vh] overflow-y-auto">
-                @foreach($produtos as $produto)
-                <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30"
-                     x-show="!busca || '{{ strtolower($produto->nome) }}'.includes(busca.toLowerCase())">
+            <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                @forelse($produtos as $produto)
+                <div class="flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                     <div class="flex items-center gap-3">
                         @if($produto->imagem)
                         <img src="{{ Storage::url($produto->imagem) }}" alt="{{ $produto->nome }}"
@@ -49,8 +65,19 @@
                         + Adicionar
                     </button>
                 </div>
-                @endforeach
+                @empty
+                <div class="px-6 py-10 text-center text-sm text-gray-400">
+                    Nenhum produto encontrado.
+                </div>
+                @endforelse
             </div>
+
+            {{-- Paginação --}}
+            @if($produtos->hasPages())
+            <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+                {{ $produtos->links() }}
+            </div>
+            @endif
         </x-card>
     </div>
 
@@ -106,9 +133,22 @@
 @push('scripts')
 <script>
 function carrinho() {
+    const STORAGE_KEY = 'carrinho_escola_{{ $escola->id }}';
+
     return {
         itens: [],
-        busca: '',
+
+        init() {
+            const salvo = localStorage.getItem(STORAGE_KEY);
+            if (salvo) {
+                try { this.itens = JSON.parse(salvo); } catch (e) { this.itens = []; }
+            }
+
+            this.$watch('itens', (valor) => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(valor));
+            }, { deep: true });
+        },
+
         adicionar(id, nome, min, max) {
             const existe = this.itens.find(i => i.produto_id === id);
             if (existe) {
@@ -117,22 +157,27 @@ function carrinho() {
             }
             this.itens.push({ produto_id: id, nome, qnt: min, qnt_min: min, qnt_max: max });
         },
+
         remover(index) { this.itens.splice(index, 1); },
+
         incrementar(index) {
             const item = this.itens[index];
             item.qnt = Math.min(item.qnt + 1, item.qnt_max);
         },
+
         decrementar(index) {
             const item = this.itens[index];
             item.qnt = Math.max(item.qnt - 1, item.qnt_min);
         },
+
         submeter(e) {
             if (this.itens.length === 0) {
                 e.preventDefault();
                 alert('Adicione ao menos um item ao carrinho.');
                 return;
             }
-            // deixa o form submeter normalmente
+            // Limpa o storage após enviar com sucesso
+            localStorage.removeItem(STORAGE_KEY);
         }
     }
 }

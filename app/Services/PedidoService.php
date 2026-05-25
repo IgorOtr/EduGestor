@@ -62,12 +62,20 @@ class PedidoService
                 }
             }
 
-            $status = $this->calcularStatusPedido($pedido->fresh(['itens']));
+            $status = $this->calcularStatusPedido($pedido->fresh(['itens.produto']));
+
+            // Calcula custo total com base nos itens aprovados e no custo unitário de cada produto
+            $totalCust = $pedido->fresh(['itens.produto'])->itens->sum(function ($item) {
+                $qnt  = $item->qnt_aprov ?? 0;
+                $cust = $item->produto?->unt_cust ?? 0;
+                return $qnt * $cust;
+            });
 
             $pedido->update([
                 'status'         => $status,
                 'obs_secretario' => $obs,
                 'aprovado_em'    => now(),
+                'total_cust'     => $totalCust > 0 ? $totalCust : null,
             ]);
 
             return $pedido->fresh(['itens.produto', 'escola', 'diretor']);
