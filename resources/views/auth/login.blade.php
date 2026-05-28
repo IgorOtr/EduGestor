@@ -83,7 +83,7 @@
     </div>
 
     <p class="text-center text-white/40 text-xs mt-6">
-        EduGestor &copy; {{ date('Y') }} &mdash; Prefeitura Municipal
+        EduGestor &copy; {{ date('Y') }} &mdash; STDI
     </p>
 </div>
 </body>
