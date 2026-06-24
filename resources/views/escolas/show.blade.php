@@ -16,6 +16,11 @@
 
 <div class="grid lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
+        @if(auth()->user()?->isSecretario() || auth()->user()?->isRoot())
+        <x-card title="Custo Mensal da Escola (últimos 12 meses)">
+            <div id="chart_custo_mensal" style="min-height: 280px;"></div>
+        </x-card>
+        @endif
         <x-card title="Dados da Escola">
             <div class="grid grid-cols-2 gap-4 text-sm">
                 @foreach([
@@ -47,12 +52,6 @@
             </div>
             @endif
         </x-card>
-
-        @if(auth()->user()?->isSecretario() || auth()->user()?->isRoot())
-        <x-card title="Custo Mensal da Escola (últimos 12 meses)">
-            <div id="chart_custo_mensal" style="min-height: 280px;"></div>
-        </x-card>
-        @endif
 
         <!-- Pedidos da escola -->
         <x-card title="Pedidos" :padding="false">
@@ -87,6 +86,11 @@
 
     <!-- Sidebar -->
     <div class="space-y-4">
+        @if(auth()->user()?->isSecretario() || auth()->user()?->isRoot())
+        <x-card title="Taxa de Aprovação">
+            <div id="chart_taxa_aprovacao" style="min-height: 280px;"></div>
+        </x-card>
+        @endif
         @can('update', $escola)
         <x-card title="Vincular Diretor">
             <form method="POST" action="{{ route('escolas.vincular-diretor', [$escola, '__DIRETOR__']) }}" id="formVincular">
@@ -184,6 +188,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const isDark  = document.documentElement.classList.contains('dark');
     const labels  = @json($custoMensal->pluck('label'));
     const valores = @json($custoMensal->pluck('total'));
+    const taxaAprovacao = @json($taxaAprovacao);
+    const taxaValores = [
+        taxaAprovacao.percentuais.aprovados,
+        taxaAprovacao.percentuais.parciais,
+        taxaAprovacao.percentuais.recusados,
+    ];
 
     const options = {
         series: [{ name: 'Custo Total (R$)', data: valores }],
@@ -224,9 +234,64 @@ document.addEventListener('DOMContentLoaded', function () {
             active: { filter: { type: 'none' } },
         },
     };
-
     new ApexCharts(document.getElementById('chart_custo_mensal'), options).render();
+
+    const taxaElement = document.getElementById('chart_taxa_aprovacao');
+    if (taxaElement) {
+        const taxaOptions = {
+            series: taxaValores,
+            chart: {
+                type: 'pie',
+                height: 280,
+                toolbar: { show: false },
+                fontFamily: 'inherit',
+                foreColor: isDark ? '#9ca3af' : '#6b7280',
+            },
+            labels: ['Totalmente aprovados', 'Aprovados parcialmente', 'Rejeitados'],
+            colors: ['#2563eb', '#9ca3af', '#dc2626'],
+            dataLabels: {
+                enabled: true,
+                formatter: val => val.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%',
+            },
+            legend: {
+                position: 'bottom',
+                fontSize: '12px',
+                markers: { radius: 12 },
+            },
+            tooltip: {
+                y: {
+                    formatter: val => val.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                    }) + '%',
+                },
+            },
+            stroke: {
+                colors: [isDark ? '#1f2937' : '#ffffff'],
+            },
+            noData: {
+                text: 'Nenhum item finalizado',
+                align: 'center',
+                verticalAlign: 'middle',
+                style: {
+                    color: isDark ? '#9ca3af' : '#6b7280',
+                    fontSize: '13px',
+                },
+            },
+            states: {
+                hover:  { filter: { type: 'none' } },
+                active: { filter: { type: 'none' } },
+            },
+        };
+
+        if (taxaAprovacao.total === 0) {
+            taxaOptions.series = [];
+        }
+
+        new ApexCharts(taxaElement, taxaOptions).render();
+    }
 });
 </script>
+
 @endpush
 @endif

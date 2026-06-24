@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DTOs\EscolaDTO;
 use App\Http\Requests\StoreEscolaRequest;
 use App\Http\Requests\UpdateEscolaRequest;
+use App\Enums\ItemPedidoStatusEnum;
 use App\Models\Escola;
 use App\Enums\PedidoStatusEnum;
 use App\Services\EscolaService;
@@ -59,11 +60,36 @@ class EscolaController extends Controller
         $escola->load(['diretor', 'pedidos.itens.produto']);
 
         $custoMensal = collect();
+        $taxaAprovacao = [
+            'total' => 0,
+            'percentuais' => [
+                'aprovados' => 0,
+                'parciais'  => 0,
+                'recusados' => 0,
+            ],
+        ];
 
         /** @var \App\Models\User $authUser */
         $authUser = auth()->user();
 
         if ($authUser?->isSecretario() || $authUser?->isRoot()) {
+            $itens = $escola->pedidos->flatMap->itens;
+            $totais = [
+                'aprovados' => $itens->where('status', ItemPedidoStatusEnum::Aprovado)->count(),
+                'parciais'  => $itens->where('status', ItemPedidoStatusEnum::Parcial)->count(),
+                'recusados' => $itens->where('status', ItemPedidoStatusEnum::Recusado)->count(),
+            ];
+
+            $totalItensFinalizados = array_sum($totais);
+            $taxaAprovacao = [
+                'total' => $totalItensFinalizados,
+                'percentuais' => [
+                    'aprovados' => $totalItensFinalizados > 0 ? round(($totais['aprovados'] / $totalItensFinalizados) * 100, 1) : 0,
+                    'parciais'  => $totalItensFinalizados > 0 ? round(($totais['parciais'] / $totalItensFinalizados) * 100, 1) : 0,
+                    'recusados' => $totalItensFinalizados > 0 ? round(($totais['recusados'] / $totalItensFinalizados) * 100, 1) : 0,
+                ],
+            ];
+
             $meses = collect(range(11, 0))->map(fn ($i) => now()->startOfMonth()->subMonths($i));
 
             $pedidosAprovados = $escola->pedidos()
@@ -88,7 +114,7 @@ class EscolaController extends Controller
             });
         }
 
-        return view('escolas.show', compact('escola', 'custoMensal'));
+        return view('escolas.show', compact('escola', 'custoMensal', 'taxaAprovacao'));
     }
 
     public function edit(Escola $escola): View
