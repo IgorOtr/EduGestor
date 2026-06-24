@@ -22,6 +22,9 @@
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Diretor</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Telefone</th>
                     <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Alunos</th>
+                    @if(auth()->user()?->isSecretario())
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Custo por Aluno</th>
+                    @endif
                     <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Ações</th>
                 </tr>
             </thead>
@@ -37,6 +40,11 @@
                     </td>
                     <td class="px-6 py-4 text-gray-500">{{ $escola->telefone ?? '–' }}</td>
                     <td class="px-6 py-4 text-center text-gray-600">{{ $escola->qnt_total }}</td>
+                    @if(auth()->user()?->isSecretario())
+                    <td class="px-6 py-4 text-center text-gray-700 dark:text-gray-300 font-medium">
+                        {{ $escola->custo_por_aluno !== null ? 'R$ ' . number_format((float) $escola->custo_por_aluno, 2, ',', '.') : '–' }}
+                    </td>
+                    @endif
                     <td class="px-6 py-4 text-right flex justify-end gap-1">
                         <x-action-btn type="show" :href="route('escolas.show', $escola)" title="Ver escola"/>
                         @can('update', $escola)
@@ -45,7 +53,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-6 py-10 text-center text-gray-400">Nenhuma escola cadastrada.</td></tr>
+                <tr><td colspan="{{ auth()->user()?->isSecretario() ? 6 : 5 }}" class="px-6 py-10 text-center text-gray-400">Nenhuma escola cadastrada.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -18,6 +18,7 @@ class PedidoService
 
     public function listar(int $perPage = 15): LengthAwarePaginator
     {
+        /** @var \App\Models\User $user */
         $user   = auth()->user();
         $userId = $user->isDiretor() ? $user->id : null;
         return $this->pedidoRepository->paginate($perPage, [], $userId);
@@ -93,7 +94,11 @@ class PedidoService
                 'status'         => PedidoStatusEnum::Recusado,
                 'obs_secretario' => $obs,
                 'aprovado_em'    => now(),
+                'total_cust'     => null,
             ]);
+
+            $this->atualizarCustoPorAlunoDaEscola($pedido->escola()->firstOrFail());
+
             return $pedido->fresh();
         });
     }
@@ -133,22 +138,27 @@ class PedidoService
 
     private function atualizarCustoPorAlunoDaEscola(Escola $escola): void
     {
-        $qntTotalAlunos = (int) $escola->qnt_total;
+        $qntTotalAlunos = (int) ($escola->qnt_total ?: ((int) $escola->qnt_masc + (int) $escola->qnt_fem));
 
         if ($qntTotalAlunos <= 0) {
             $escola->update(['custo_por_aluno' => null]);
             return;
         }
 
-        $custoTotalAprovado = (float) $escola->pedidos()
+        $inicioMes = now()->startOfMonth();
+        $fimMes    = now()->endOfMonth();
+
+        $custoTotalMes = (float) $escola->pedidos()
             ->whereIn('status', [
                 PedidoStatusEnum::Aprovado->value,
                 PedidoStatusEnum::ParcialmenteAprovado->value,
             ])
+            ->whereNotNull('total_cust')
+            ->whereBetween('aprovado_em', [$inicioMes, $fimMes])
             ->sum('total_cust');
 
-        $custoPorAluno = $custoTotalAprovado > 0
-            ? round($custoTotalAprovado / $qntTotalAlunos, 2)
+        $custoPorAluno = $custoTotalMes > 0
+            ? round($custoTotalMes / $qntTotalAlunos, 2)
             : null;
 
         $escola->update(['custo_por_aluno' => $custoPorAluno]);
