@@ -37,16 +37,22 @@
                 @endforeach
             </div>
 
-            @if(auth()->user()?->isSecretario())
+            @if(auth()->user()?->isSecretario() || auth()->user()?->isRoot())
             <div class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <p class="text-gray-500 text-xs mb-0.5">Custo por Aluno (mês atual)</p>
                 <p class="font-semibold text-gray-800 dark:text-white">
                     {{ $escola->custo_por_aluno !== null ? 'R$ ' . number_format((float) $escola->custo_por_aluno, 2, ',', '.') : '–' }}
                 </p>
-                <p class="text-xs text-gray-400 mt-1">Baseado no total aprovado em {{ now()->translatedFormat('m/Y') }}. Atualizado a cada aprovação de pedido.</p>
+                <p class="text-xs text-gray-400 mt-1">Baseado no total aprovado em {{ now()->locale('pt_BR')->translatedFormat('F/Y') }}. Atualizado a cada aprovação de pedido.</p>
             </div>
             @endif
         </x-card>
+
+        @if(auth()->user()?->isSecretario() || auth()->user()?->isRoot())
+        <x-card title="Custo Mensal da Escola (últimos 12 meses)">
+            <div id="chart_custo_mensal" style="min-height: 280px;"></div>
+        </x-card>
+        @endif
 
         <!-- Pedidos da escola -->
         <x-card title="Pedidos" :padding="false">
@@ -169,3 +175,58 @@
     </div>
 </div>
 @endsection
+
+@if(auth()->user()?->isSecretario() || auth()->user()?->isRoot())
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const isDark  = document.documentElement.classList.contains('dark');
+    const labels  = @json($custoMensal->pluck('label'));
+    const valores = @json($custoMensal->pluck('total'));
+
+    const options = {
+        series: [{ name: 'Custo Total (R$)', data: valores }],
+        chart: {
+            type: 'bar',
+            height: 280,
+            toolbar: { show: false },
+            fontFamily: 'inherit',
+            foreColor: isDark ? '#9ca3af' : '#6b7280',
+        },
+        plotOptions: {
+            bar: { borderRadius: 6, columnWidth: '55%' }
+        },
+        dataLabels: { enabled: false },
+        xaxis: {
+            categories: labels,
+            labels: { style: { fontSize: '12px' } },
+            axisBorder: { show: false },
+            axisTicks:  { show: false },
+        },
+        yaxis: {
+            labels: {
+                formatter: val => 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+                style: { fontSize: '12px' },
+            }
+        },
+        tooltip: {
+            y: { formatter: val => 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) }
+        },
+        colors: ['#3b82f6'],
+        grid: {
+            borderColor: isDark ? '#374151' : '#e5e7eb',
+            strokeDashArray: 4,
+            yaxis: { lines: { show: true } },
+        },
+        states: {
+            hover:  { filter: { type: 'none' } },
+            active: { filter: { type: 'none' } },
+        },
+    };
+
+    new ApexCharts(document.getElementById('chart_custo_mensal'), options).render();
+});
+</script>
+@endpush
+@endif

@@ -6,6 +6,7 @@ use App\DTOs\EscolaDTO;
 use App\Http\Requests\StoreEscolaRequest;
 use App\Http\Requests\UpdateEscolaRequest;
 use App\Models\Escola;
+use App\Enums\PedidoStatusEnum;
 use App\Services\EscolaService;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,7 @@ class EscolaController extends Controller
     {
         $this->authorize('viewAny', Escola::class);
 
+        /** @var \App\Models\User $user */
         $user = auth()->user();
         if ($user->isDiretor()) {
             $escolas = $user->escola
@@ -55,7 +57,38 @@ class EscolaController extends Controller
     {
         $this->authorize('view', $escola);
         $escola->load(['diretor', 'pedidos.itens.produto']);
-        return view('escolas.show', compact('escola'));
+
+        $custoMensal = collect();
+
+        /** @var \App\Models\User $authUser */
+        $authUser = auth()->user();
+
+        if ($authUser?->isSecretario() || $authUser?->isRoot()) {
+            $meses = collect(range(11, 0))->map(fn ($i) => now()->startOfMonth()->subMonths($i));
+
+            $pedidosAprovados = $escola->pedidos()
+                ->whereIn('status', [
+                    PedidoStatusEnum::Aprovado->value,
+                    PedidoStatusEnum::ParcialmenteAprovado->value,
+                ])
+                ->whereNotNull('total_cust')
+                ->whereNotNull('aprovado_em')
+                ->where('aprovado_em', '>=', now()->startOfMonth()->subMonths(11))
+                ->get(['total_cust', 'aprovado_em']);
+
+            $custoMensal = $meses->map(function ($mes) use ($pedidosAprovados) {
+                $total = $pedidosAprovados
+                    ->filter(fn ($p) => $p->aprovado_em->format('Y-m') === $mes->format('Y-m'))
+                    ->sum('total_cust');
+
+                return [
+                    'label' => $mes->locale('pt_BR')->translatedFormat('M/y'),
+                    'total' => round((float) $total, 2),
+                ];
+            });
+        }
+
+        return view('escolas.show', compact('escola', 'custoMensal'));
     }
 
     public function edit(Escola $escola): View
