@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-br" x-data="{ sidebarOpen: false, darkMode: false }" :class="{ 'dark': darkMode }">
+<html lang="pt-br"
+      x-data="{ sidebarOpen: false, darkMode: localStorage.getItem('edugestor_dark') === 'true' }"
+      x-effect="localStorage.setItem('edugestor_dark', darkMode)"
+      :class="{ 'dark': darkMode }">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
