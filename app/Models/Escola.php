@@ -27,6 +27,7 @@ class Escola extends Model
         'faixa_etaria',
         'professores',
         'funcionarios',
+        'custo_por_aluno',
     ];
 
     protected function casts(): array
@@ -37,6 +38,7 @@ class Escola extends Model
             'qnt_total'     => 'integer',
             'professores'   => 'integer',
             'funcionarios'  => 'integer',
+            'custo_por_aluno' => 'decimal:2',
         ];
     }
 

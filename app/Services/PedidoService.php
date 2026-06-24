@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTOs\PedidoDTO;
 use App\Enums\ItemPedidoStatusEnum;
 use App\Enums\PedidoStatusEnum;
+use App\Models\Escola;
 use App\Models\ItemPedido;
 use App\Models\Pedido;
 use App\Repositories\PedidoRepository;
@@ -78,6 +79,8 @@ class PedidoService
                 'total_cust'     => $totalCust > 0 ? $totalCust : null,
             ]);
 
+            $this->atualizarCustoPorAlunoDaEscola($pedido->escola()->firstOrFail());
+
             return $pedido->fresh(['itens.produto', 'escola', 'diretor']);
         });
     }
@@ -126,5 +129,28 @@ class PedidoService
     public function porEscola(string $escolaId): \Illuminate\Database\Eloquent\Collection
     {
         return $this->pedidoRepository->porEscola($escolaId);
+    }
+
+    private function atualizarCustoPorAlunoDaEscola(Escola $escola): void
+    {
+        $qntTotalAlunos = (int) $escola->qnt_total;
+
+        if ($qntTotalAlunos <= 0) {
+            $escola->update(['custo_por_aluno' => null]);
+            return;
+        }
+
+        $custoTotalAprovado = (float) $escola->pedidos()
+            ->whereIn('status', [
+                PedidoStatusEnum::Aprovado->value,
+                PedidoStatusEnum::ParcialmenteAprovado->value,
+            ])
+            ->sum('total_cust');
+
+        $custoPorAluno = $custoTotalAprovado > 0
+            ? round($custoTotalAprovado / $qntTotalAlunos, 2)
+            : null;
+
+        $escola->update(['custo_por_aluno' => $custoPorAluno]);
     }
 }

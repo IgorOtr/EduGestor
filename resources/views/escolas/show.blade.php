@@ -36,6 +36,16 @@
                 </div>
                 @endforeach
             </div>
+
+            @if(auth()->user()?->isSecretario())
+            <div class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <p class="text-gray-500 text-xs mb-0.5">Custo por Aluno</p>
+                <p class="font-semibold text-gray-800 dark:text-white">
+                    {{ $escola->custo_por_aluno !== null ? 'R$ ' . number_format((float) $escola->custo_por_aluno, 2, ',', '.') : '–' }}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">Atualizado automaticamente a cada aprovação de pedido.</p>
+            </div>
+            @endif
         </x-card>
 
         <!-- Pedidos da escola -->
